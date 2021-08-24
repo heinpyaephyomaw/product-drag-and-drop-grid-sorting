@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		.content {
+			width: 300px;
+			position: relative;
+			background: blue;
+		}
+
+		.draggable {
+			display: inline-block;
+			float: left;
+			height: 60px;
+			padding: 20px 0;
+			margin: 5px;
+			text-align: center;
+			background: red;
+			position: absolute;
+			transition: all 700ms ease;
+			color: #FFF;
+		}
+	</style>
+</head>
+
+<body>
+
+	<div class="content">
+		<div class="draggable" draggable="true">1</div>
+		<div class="draggable" draggable="true">2</div>
+		<div class="draggable" draggable="true">3</div>
+		<div class="draggable" draggable="true">4</div>
+		<div class="draggable" draggable="true">5</div>
+		<div class="draggable" draggable="true">6</div>
+		<div class="draggable" draggable="true">7</div>
+		<div class="draggable" draggable="true">8</div>
+		<div class="draggable" draggable="true">9</div>
+		<div class="draggable" draggable="true">10</div>
+		<div class="draggable" draggable="true">11</div>
+	</div>
+
+
+
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script>
+		let dragDestIndex;
+		let draggedEl;
+		let draggedElIndex;
+		let rearranging = false;
+		let rearrangingDuration = 350;
+		let draggableElArr = $('.draggable');
+		function arrangeItems(itemEls, columnsCount, containerEl, elHeight) {
+			let $containerEl = $(containerEl);
+			let elWidth = $containerEl.width() / columnsCount;
+			elHeight = elHeight || elWidth;
+
+			for (let i = 0; i < itemEls.length; i++) {
+				let $item = $(itemEls[i]);
+				$item.data('index', i);
+				let pos = {
+					x: (i % columnsCount),
+					y: Math.floor(i / columnsCount)
+				};
+				$item.css({
+					top: pos.y * elHeight + 'px',
+					left: pos.x * elWidth + 'px',
+					width: 'calc(' + (100 / columnsCount) + '% - 10px)',
+					height: 'calc(' + elHeight + 'px - 10px)',
+					boxSizing: 'border-box'
+				});
+			}
+		}
+
+		function rearrangeItems(arr, movedItemIndex, destinationIndex) {
+			let movedEl = arr.splice(movedItemIndex, 1)[0];
+			arr.splice(destinationIndex, 0, movedEl);
+			return arr;
+		};
+		arrangeItems(draggableElArr, 4, $('.content'));
+		$('.draggable').on('dragstart', function (e) {
+			draggedEl = $(this);
+			let sortedArr = [];
+			for (let i = 0; i < draggableElArr.length; i++) {
+				let elIndex = $(draggableElArr[i]).data('index');
+				sortedArr[elIndex] = draggableElArr[i];
+			}
+			draggableElArr = sortedArr;
+			draggedElIndex = $(this).data('index');
+			$(this).css({ opacity: 0, transition: 'all 100ms ease' });
+		});
+
+		$('.draggable').on('dragend', function (e) {
+			e.preventDefault();
+			$(this).css({ opacity: 1, transition: 'all 700ms ease' });
+		});
+
+		$('.draggable').on('dragover', function (e) {
+			e.preventDefault();
+			if (rearranging) {
+				return;
+			}
+			let dragDestIndex = $(this).data('index');
+			draggedElIndex = draggedEl.data('index');
+			if (draggedElIndex !== dragDestIndex) {
+				rearranging = true;
+				let rearrangedEls = rearrangeItems(draggableElArr, draggedElIndex, dragDestIndex);
+				arrangeItems(rearrangedEls, 4, $('.content'));
+				setTimeout(function () { rearranging = false }, rearrangingDuration);
+			}
+		});
+
+		$('.draggable').on('drop', function (e) {
+			e.preventDefault();
+			rearranging = false;
+		});
+	</script>
+</body>
+
+</html>
